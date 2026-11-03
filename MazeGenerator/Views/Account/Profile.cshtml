@@ -1,0 +1,196 @@
+﻿@using MazeGenerator.Models.Enums
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "Профиль";
+    var levels = new[]
+    {
+        (Type: DifficultType.Easy, Name: "Лёгкий", Css: "easy"),
+        (Type: DifficultType.Medium, Name: "Средний", Css: "medium"),
+        (Type: DifficultType.Hard, Name: "Сложный", Css: "hard")
+    };
+}
+
+<style>
+    .profile {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 64px 16px 80px;
+    }
+
+    .profile-title {
+        font-size: 2rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0 0 32px;
+        color: #111;
+    }
+
+    .profile-card {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        margin-bottom: 40px;
+    }
+
+    .profile-img {
+        width: 96px;
+        height: 96px;
+        object-fit: contain;
+        background: #f5f5f5;
+        border-radius: 8px;
+    }
+
+    .profile-label {
+        margin: 0 0 4px;
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #777;
+    }
+
+    .profile-name {
+        margin: 0 0 10px;
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #111;
+    }
+
+    .profile-link {
+        display: inline-block;
+        padding: 6px 14px;
+        font-size: 0.9rem;
+        color: #111;
+        text-decoration: none;
+        border: 1px solid #d8d8de;
+        border-radius: 8px;
+    }
+
+        .profile-link:hover {
+            border-color: #111;
+        }
+
+    .profile-section {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0 0 16px;
+        color: #111;
+    }
+
+    .results {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .result-card {
+        --accent: #111;
+        --accent-soft: #f5f5f5;
+        position: relative;
+        overflow: hidden;
+        padding: 24px 20px;
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+    }
+
+        .result-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent);
+        }
+
+        .result-card.easy {
+            --accent: #10b981;
+            --accent-soft: #ecfdf5;
+        }
+
+        .result-card.medium {
+            --accent: #f59e0b;
+            --accent-soft: #fffbeb;
+        }
+
+        .result-card.hard {
+            --accent: #ef4444;
+            --accent-soft: #fef2f2;
+        }
+
+        .result-card h3 {
+            margin: 4px 0 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #111;
+        }
+
+    .result-time {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--accent);
+    }
+
+    .result-date {
+        margin: 6px 0 0;
+        font-size: 0.85rem;
+        color: #777;
+    }
+
+    .result-empty {
+        font-size: 1.2rem;
+        color: #aaa;
+    }
+</style>
+
+<div class="profile">
+    <h1 class="profile-title">Привет, @Model.Username</h1>
+
+    <div class="profile-card">
+        @if (Model.Character != null)
+        {
+            <img class="profile-img" src="@Model.Character.ImagePath" alt="@Model.Character.Name" />
+            <div>
+                <p class="profile-label">Твой персонаж</p>
+                <p class="profile-name">@Model.Character.Name</p>
+                <a class="profile-link" asp-controller="Account" asp-action="ChangeCharacter">Сменить</a>
+            </div>
+        }
+        else
+        {
+            <div>
+                <p class="profile-label">Твой персонаж</p>
+                <p class="profile-name">Не выбран</p>
+                <a class="profile-link" asp-controller="Account" asp-action="ChangeCharacter">Выбрать</a>
+            </div>
+        }
+    </div>
+
+    <h2 class="profile-section">Лучшее время</h2>
+
+    <div class="results">
+        @foreach (var level in levels)
+        {
+            var r = Model.BestResults.FirstOrDefault(x =>
+                x.MazeType == MazeType.Standart && x.Difficulty == level.Type);
+
+            <div class="result-card @level.Css">
+                <h3>@level.Name</h3>
+                @if (r != null)
+                {
+                    <div class="result-time">@r.TimeSeconds.ToString("0.0") с</div>
+                    <p class="result-date">@r.CompletedAt.ToLocalTime().ToString("dd.MM.yyyy")</p>
+                }
+                else
+                {
+                    <div class="result-empty">Пока нет</div>
+                    <p class="result-date">Ещё не пройден</p>
+                }
+            </div>
+        }
+    </div>
+</div>

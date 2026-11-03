@@ -1,0 +1,197 @@
+﻿@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Лабиринты</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+            body {
+                margin: 0;
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+                color: #111;
+                background: #fff;
+            }
+
+            .topbar {
+                border-bottom: 1px solid #e5e5e5;
+                background: #fff;
+            }
+
+            .topbar-inner {
+                max-width: 880px;
+                height: 56px;
+                margin: 0 auto;
+                padding: 0 16px;
+                display: flex;
+                align-items: stretch;
+                gap: 32px;
+            }
+
+            /* логотип */
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 1rem;
+                font-weight: 600;
+                letter-spacing: -0.01em;
+                color: #111;
+                text-decoration: none;
+            }
+
+            .brand-mark {
+                position: relative;
+                width: 16px;
+                height: 16px;
+                border: 2px solid #111;
+                border-right-color: transparent; /* "вход" в лабиринт */
+            }
+
+            .brand-mark::after {
+                content: "";
+                position: absolute;
+                top: 3px;
+                left: 3px;
+                width: 6px;
+                height: 6px;
+                background: #10b981;
+            }
+
+            /* меню */
+            .nav {
+                display: flex;
+                align-items: stretch;
+                gap: 20px;
+            }
+
+            .nav-link {
+                display: flex;
+                align-items: center;
+                font-size: 0.9rem;
+                color: #777;
+                text-decoration: none;
+                border-bottom: 2px solid transparent;
+                margin-bottom: -1px; /* перекрывает линию шапки */
+                transition: color 0.15s ease, border-color 0.15s ease;
+            }
+
+            .nav-link:hover {
+                color: #111;
+            }
+
+            .nav-link.active {
+                color: #111;
+                border-bottom-color: #111;
+            }
+
+            /* правая часть */
+            .topbar-right {
+                margin-left: auto;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .user {
+                font-size: 0.9rem;
+                color: #777;
+                margin-right: 6px;
+            }
+
+            .inline {
+                margin: 0;
+            }
+
+            .btn-outline,
+            .btn-fill {
+                display: inline-block;
+                padding: 6px 14px;
+                font: inherit;
+                font-size: 0.85rem;
+                line-height: 1.4;
+                border-radius: 6px;
+                border: 1px solid #e5e5e5;
+                text-decoration: none;
+                cursor: pointer;
+                transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+            }
+
+            .btn-outline {
+                background: #fff;
+                color: #111;
+            }
+
+            .btn-outline:hover {
+                border-color: #111;
+            }
+
+            .btn-fill {
+                background: #111;
+                border-color: #111;
+                color: #fff;
+            }
+
+            .btn-fill:hover {
+                background: #333;
+                border-color: #333;
+            }
+
+            @@media (max-width: 600px) {
+                .topbar-inner { gap: 16px; }
+                .user { display: none; }
+                .brand span:last-child { display: none; }
+            }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" asp-controller="Home" asp-action="Index">
+                <span class="brand-mark"></span>
+                <span>Лабиринты</span>
+            </a>
+
+            <nav class="nav">
+                <a class="nav-link @(controller == "Home" ? "active" : "")"
+                   asp-controller="Home" asp-action="Index">Главная</a>
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a class="nav-link @(controller == "Account" && action == "Profile" ? "active" : "")"
+                       asp-controller="Account" asp-action="Profile">Профиль</a>
+
+                    <a class="nav-link @(controller == "Account" && action == "ChangeCharacter" ? "active" : "")"
+                       asp-controller="Account" asp-action="ChangeCharacter">Сменить персонажа</a>
+                }
+            </nav>
+
+            <div class="topbar-right">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <span class="user">@User.Identity.Name</span>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="inline">
+                        <button type="submit" class="btn-outline">Выйти</button>
+                    </form>
+                }
+                else
+                {
+                    <a class="btn-outline" asp-controller="Account" asp-action="Login">Вход</a>
+                    <a class="btn-fill" asp-controller="Account" asp-action="Register">Регистрация</a>
+                }
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        @RenderBody()
+    </main>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

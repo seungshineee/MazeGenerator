@@ -1,0 +1,111 @@
+﻿@model SelectCharacterViewModel
+@{
+    ViewData["Title"] = "Персонаж";
+}
+
+<style>
+    .char-page {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 64px 16px 80px;
+    }
+
+    .char-title {
+        font-size: 2rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0 0 8px;
+        color: #111;
+    }
+
+    .char-subtitle {
+        font-size: 1rem;
+        color: #777;
+        margin: 0 0 48px;
+    }
+
+    .char-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .char-card {
+        position: relative;
+        padding: 24px 20px;
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        text-align: center;
+        transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+        .char-card:hover {
+            border-color: #111;
+            transform: translateY(-2px);
+        }
+
+        .char-card.selected {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+    .char-img {
+        width: 112px;
+        height: 112px;
+        object-fit: contain;
+        background: #f5f5f5;
+        border-radius: 8px;
+        margin-bottom: 14px;
+    }
+
+    .char-card h2 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 14px;
+        color: #111;
+    }
+
+    .char-btn {
+        width: 100%;
+        padding: 8px 12px;
+        font: inherit;
+        font-weight: 500;
+        color: #111;
+        background: #fff;
+        border: 1px solid #d8d8de;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+        .char-btn:hover {
+            border-color: #111;
+        }
+
+    .char-card.selected .char-btn {
+        color: #fff;
+        background: #10b981;
+        border-color: #10b981;
+        cursor: default;
+    }
+</style>
+
+<div class="char-page">
+    <h1 class="char-title">Персонаж</h1>
+    <p class="char-subtitle">Выбери, за кого проходить лабиринты.</p>
+
+    <div class="char-grid">
+        @foreach (var c in Model.Characters)
+        {
+            var selected = c.Id == Model.SelectId;
+            <form class="char-card @(selected ? "selected" : "")" method="post" asp-action="ChangeCharacter">
+                <img class="char-img" src="@c.ImagePath" alt="@c.Name" />
+                <h2>@c.Name</h2>
+                <input type="hidden" name="characterId" value="@c.Id" />
+                <button type="submit" class="char-btn" disabled="@selected">
+                    @(selected ? "Выбран" : "Выбрать")
+                </button>
+            </form>
+        }
+    </div>
+</div>

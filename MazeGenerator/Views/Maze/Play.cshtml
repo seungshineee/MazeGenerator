@@ -1,0 +1,374 @@
+﻿@model MazeViewModel
+@{
+    var title = Model.Difficulty.ToString() switch
+    {
+        "Easy" => "Лёгкий",
+        "Medium" => "Средний",
+        "Hard" => "Сложный",
+        _ => Model.Difficulty.ToString()
+    };
+    ViewData["Title"] = "Лабиринт: " + title;
+    var best = Model.BestTimeSeconds?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+}
+
+<style>
+    /* Цвета заданы прямо на блоке игры, поэтому страница не зависит от внешнего CSS */
+    .game {
+        --bg: #f5f5f7;
+        --card: #ffffff;
+        --text: #1d1d1f;
+        --muted: #6e6e73;
+        --accent: #4a6cf7;
+        --border: #d8d8de;
+
+        max-width: 700px;
+        margin: 0 auto;
+        color: var(--text);
+    }
+
+    /* тёмная тема, если в <html> стоит data-theme="dark" */
+    :root[data-theme="dark"] .game {
+        --bg: #17181c;
+        --card: #23252b;
+        --text: #ececf1;
+        --muted: #9a9aa5;
+        --accent: #7c93ff;
+        --border: #3a3c45;
+    }
+
+    .game-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .game-head h1 { margin: 0; font-size: 1.6rem; }
+
+    .stats { display: flex; gap: 12px; }
+    .stat {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 8px 16px;
+        text-align: center;
+        min-width: 90px;
+    }
+    .stat-label { display: block; font-size: 0.8rem; color: var(--muted); }
+    .stat-value { font-size: 1.3rem; font-weight: 700; }
+
+    .canvas-wrap {
+        position: relative;
+        margin: 20px 0;
+        display: flex;
+        justify-content: center;
+    }
+    #maze {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        max-width: 100%;
+    }
+
+    .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.45);
+        border-radius: 8px;
+    }
+    .overlay[hidden] { display: none; }
+    .overlay-box {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px 32px;
+        text-align: center;
+        max-width: 320px;
+    }
+    .overlay-box h2 { margin-top: 0; }
+
+    .btn-fill, .btn-outline {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font: inherit;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .btn-fill {
+        background: var(--accent);
+        color: #fff;
+        border: 1px solid var(--accent);
+        margin-top: 8px;
+    }
+    .btn-outline {
+        background: var(--card);
+        color: var(--text);
+        border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--accent); }
+
+    .game-actions { display: flex; gap: 12px; justify-content: center; }
+
+    .dpad {
+        display: grid;
+        grid-template-columns: repeat(3, 56px);
+        grid-template-areas: ". up ." "left . right" ". down .";
+        gap: 6px;
+        justify-content: center;
+        margin: 20px 0 0;
+    }
+    .dpad button {
+        height: 56px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--card);
+        color: var(--text);
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+    .dpad button:active { background: var(--accent); color: #fff; }
+    .dpad-up { grid-area: up; }
+    .dpad-left { grid-area: left; }
+    .dpad-right { grid-area: right; }
+    .dpad-down { grid-area: down; }
+
+    .hint { text-align: center; color: var(--muted); font-size: 0.9rem; }
+
+    /* на компьютере кнопки-стрелки не нужны */
+    @@media (hover: hover) and (pointer: fine) {
+        .dpad { display: none; }
+    }
+</style>
+
+<div class="game" id="game">
+    <div class="game-head">
+        <h1>Лабиринт: @title</h1>
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-label">Время</span>
+                <span id="time" class="stat-value">0.0</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Рекорд</span>
+                <span id="best" class="stat-value" data-best="@best">—</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="canvas-wrap">
+        <canvas id="maze"></canvas>
+        <div id="message" class="overlay" hidden>
+            <div class="overlay-box">
+                <h2>Готово!</h2>
+                <p id="message-text"></p>
+                <button id="again" class="btn-fill" type="button">Играть снова</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-actions">
+        <button id="restart" class="btn-outline" type="button">Новый лабиринт</button>
+        <a class="btn-outline" asp-controller="Home" asp-action="Index">К выбору режима</a>
+    </div>
+
+    <div class="dpad">
+        <button type="button" data-dx="0" data-dy="-1" class="dpad-up">▲</button>
+        <button type="button" data-dx="-1" data-dy="0" class="dpad-left">◀</button>
+        <button type="button" data-dx="1" data-dy="0" class="dpad-right">▶</button>
+        <button type="button" data-dx="0" data-dy="1" class="dpad-down">▼</button>
+    </div>
+
+    <p class="hint">Управление: стрелки или WASD. Дойди до подсвеченной клетки в правом нижнем углу. Время пойдёт с первого шага.</p>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const difficulty = '@Model.Difficulty';
+    const generateUrl = '@Url.Action("Generate", "Maze", new { difficulty = Model.Difficulty })';
+    const saveUrl = '@Url.Action("SaveResult", "Maze")';
+    const imgSrc = '@Model.CharacterImage';
+
+    const gameEl = document.getElementById('game');
+    const canvas = document.getElementById('maze');
+    const ctx = canvas.getContext('2d');
+    const timeEl = document.getElementById('time');
+    const bestEl = document.getElementById('best');
+    const messageEl = document.getElementById('message');
+    const messageText = document.getElementById('message-text');
+
+    const PAD = 4;
+    let best = parseFloat(bestEl.dataset.best);
+    if (isNaN(best)) best = null;
+    showBest();
+
+    const img = new Image();
+    let imgLoaded = false;
+    img.onload = function () { imgLoaded = true; draw(); };
+    img.src = imgSrc;
+
+    let maze = null, cell = 0, px = 0, py = 0;
+    let startTime = null, timerId = null, finished = false;
+
+    function showBest() {
+        bestEl.textContent = best === null ? '—' : best.toFixed(1) + ' с';
+    }
+
+    // цвет берём с блока игры; если переменной нет, используем запасной
+    function css(name, fallback) {
+        const v = getComputedStyle(gameEl).getPropertyValue(name).trim();
+        return v || fallback;
+    }
+
+    async function load() {
+        stopTimer();
+        finished = false;
+        startTime = null;
+        timeEl.textContent = '0.0';
+        messageEl.hidden = true;
+
+        const res = await fetch(generateUrl, { cache: 'no-store' });
+        maze = await res.json();
+        px = 0;
+        py = 0;
+
+        const maxSize = Math.min(640, canvas.parentElement.clientWidth);
+        cell = Math.floor((maxSize - PAD * 2) / Math.max(maze.width, maze.height));
+        canvas.width = cell * maze.width + PAD * 2;
+        canvas.height = cell * maze.height + PAD * 2;
+        draw();
+    }
+
+    function draw() {
+        if (!maze) return;
+
+        ctx.fillStyle = css('--bg', '#f5f5f7');
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // клетка финиша
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = css('--accent', '#4a6cf7');
+        ctx.fillRect(PAD + (maze.width - 1) * cell, PAD + (maze.height - 1) * cell, cell, cell);
+        ctx.globalAlpha = 1;
+
+        // стены
+        ctx.strokeStyle = css('--text', '#1d1d1f');
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        for (let y = 0; y < maze.height; y++) {
+            for (let x = 0; x < maze.width; x++) {
+                const c = maze.cells[y * maze.width + x];
+                const x0 = PAD + x * cell, y0 = PAD + y * cell;
+                const x1 = x0 + cell, y1 = y0 + cell;
+                if (c.top)    { ctx.moveTo(x0, y0); ctx.lineTo(x1, y0); }
+                if (c.right)  { ctx.moveTo(x1, y0); ctx.lineTo(x1, y1); }
+                if (c.bottom) { ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); }
+                if (c.left)   { ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); }
+            }
+        }
+        ctx.stroke();
+
+        // персонаж
+        const m = Math.max(2, cell * 0.1);
+        const ox = PAD + px * cell + m, oy = PAD + py * cell + m, size = cell - m * 2;
+        if (imgLoaded) {
+            ctx.drawImage(img, ox, oy, size, size);
+        } else {
+            ctx.fillStyle = css('--accent', '#4a6cf7');
+            ctx.beginPath();
+            ctx.arc(ox + size / 2, oy + size / 2, size / 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function move(dx, dy) {
+        if (!maze || finished) return;
+        const c = maze.cells[py * maze.width + px];
+        if (dx === 1 && c.right) return;
+        if (dx === -1 && c.left) return;
+        if (dy === -1 && c.top) return;
+        if (dy === 1 && c.bottom) return;
+
+        px += dx;
+        py += dy;
+        if (startTime === null) startTimer();
+        draw();
+
+        if (px === maze.width - 1 && py === maze.height - 1) finish();
+    }
+
+    function startTimer() {
+        startTime = performance.now();
+        timerId = setInterval(function () {
+            timeEl.textContent = ((performance.now() - startTime) / 1000).toFixed(1);
+        }, 100);
+    }
+
+    function stopTimer() {
+        if (timerId !== null) { clearInterval(timerId); timerId = null; }
+    }
+
+    async function finish() {
+        finished = true;
+        stopTimer();
+        const elapsed = (performance.now() - startTime) / 1000;
+        timeEl.textContent = elapsed.toFixed(1);
+        messageText.textContent = 'Твоё время: ' + elapsed.toFixed(1) + ' с.';
+        messageEl.hidden = false;
+
+        try {
+            const res = await fetch(saveUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ difficulty: difficulty, timeSeconds: elapsed })
+            });
+
+            if (res.status === 401) {
+                messageText.textContent += ' Войди в аккаунт, чтобы результаты сохранялись.';
+                return;
+            }
+            if (res.ok) {
+                const data = await res.json();
+                const isRecord = best === null || elapsed < best;
+                best = data.bestTime;
+                showBest();
+                if (isRecord) messageText.textContent += ' Новый рекорд!';
+            }
+        } catch (e) {
+            messageText.textContent += ' Не удалось сохранить результат.';
+        }
+    }
+
+    document.addEventListener('keydown', function (e) {
+        const keys = {
+            ArrowUp: [0, -1], w: [0, -1], W: [0, -1],
+            ArrowDown: [0, 1], s: [0, 1], S: [0, 1],
+            ArrowLeft: [-1, 0], a: [-1, 0], A: [-1, 0],
+            ArrowRight: [1, 0], d: [1, 0], D: [1, 0]
+        };
+        const dir = keys[e.key];
+        if (dir) {
+            e.preventDefault();
+            move(dir[0], dir[1]);
+        }
+    });
+
+    document.querySelectorAll('.dpad button').forEach(function (b) {
+        b.addEventListener('click', function () {
+            move(parseInt(b.dataset.dx), parseInt(b.dataset.dy));
+        });
+    });
+
+    document.getElementById('restart').addEventListener('click', load);
+    document.getElementById('again').addEventListener('click', load);
+
+    load();
+})();
+</script>
+}

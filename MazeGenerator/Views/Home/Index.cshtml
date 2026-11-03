@@ -1,0 +1,125 @@
+﻿@{
+    ViewData["Title"] = "Главная";
+}
+
+<style>
+    .maze-page {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 64px 16px 80px;
+    }
+
+    .maze-title {
+        font-size: 2rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0 0 8px;
+        color: #111;
+    }
+
+    .maze-subtitle {
+        font-size: 1rem;
+        color: #777;
+        margin: 0 0 48px;
+    }
+
+    .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .card {
+        --accent: #111;
+        --accent-soft: #f5f5f5;
+        position: relative;
+        overflow: hidden;
+        padding: 24px 20px;
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+    }
+
+    /* цветная полоска сверху */
+    .card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--accent);
+    }
+
+    .card:hover {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        transform: translateY(-2px);
+    }
+
+    .card h2 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 4px 0 6px;
+        color: #111;
+    }
+
+    .card p {
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin: 0;
+        color: #777;
+    }
+
+    .card-size {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 3px 10px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+        background: var(--accent-soft);
+        border-radius: 999px;
+    }
+
+    .card:hover .card-size {
+        background: #fff;
+    }
+
+    .card.easy   { --accent: #10b981; --accent-soft: #ecfdf5; }
+    .card.medium { --accent: #f59e0b; --accent-soft: #fffbeb; }
+    .card.hard   { --accent: #ef4444; --accent-soft: #fef2f2; }
+    .card.pacman { --accent: #6366f1; --accent-soft: #eef2ff; }
+</style>
+
+<div class="maze-page">
+    <h1 class="maze-title">Генератор лабиринтов</h1>
+    <p class="maze-subtitle">Выбери режим и пройди лабиринт как можно быстрее.</p>
+
+    <div class="cards">
+        <a class="card easy" asp-controller="Maze" asp-action="Play" asp-route-difficulty="Easy">
+            <h2>Лёгкий</h2>
+            <p>Маленький лабиринт</p>
+            <span class="card-size">10 × 10</span>
+        </a>
+        <a class="card medium" asp-controller="Maze" asp-action="Play" asp-route-difficulty="Medium">
+            <h2>Средний</h2>
+            <p>Лабиринт среднего размера</p>
+            <span class="card-size">20 × 20</span>
+        </a> 
+        <a class="card hard" asp-controller="Maze" asp-action="Play" asp-route-difficulty="Hard">
+            <h2>Сложный</h2>
+            <p>Большой лабиринт</p>
+            <span class="card-size">35 × 35</span>
+        </a>
+        <a class="card pacman" asp-controller="Maze" asp-action="Pacman">
+            <h2>Pac-Man</h2>
+            <p>Собери все точки и не попадись врагам</p>
+            <span class="card-size">Аркада</span>
+        </a>
+    </div>
+</div>
