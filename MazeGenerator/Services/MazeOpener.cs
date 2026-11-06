@@ -4,7 +4,6 @@ namespace MazeGenerator.Services
 {
     public static class MazeOpener
     {
-        // chance: 0.3 значит, что каждая внутренняя стена пропадает с вероятностью 30%
         public static void OpenWalls(Cell[,] cells, int width, int height, double chance)
         {
             var random = new Random();

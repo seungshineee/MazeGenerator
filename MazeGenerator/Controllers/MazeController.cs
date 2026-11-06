@@ -13,9 +13,9 @@ namespace MazeGenerator.Controllers
         public readonly AppDbContext _context;
         public readonly IMazeGenerator _generator;
 
-        private const int PacmanSize = 14;      // чуть больше лёгкого (10)
-        private const int PacmanItems = 5;      // сколько предметов собрать
-        private const double OpenChance = 0.3;  // доля убираемых стен
+        private const int PacmanSize = 14;
+        private const int PacmanItems = 5;
+        private const double OpenChance = 0.3;
 
         private static readonly string[] EnemyImages =
         {
@@ -52,7 +52,6 @@ namespace MazeGenerator.Controllers
             return View(model);
         }
 
-        // JSON с лабиринтом: /Maze/Generate?difficulty=Easy
         [HttpGet]
         public IActionResult Generate(DifficultType difficulty = DifficultType.Easy)
         {
@@ -60,7 +59,6 @@ namespace MazeGenerator.Controllers
             var maze = new Maze { Width = width, Height = height };
             var grid = _generator.Generate(maze);
 
-            // Клетки идут по строкам: индекс = y * width + x
             var cells = new List<object>();
             for (int y = 0; y < height; y++)
             {
@@ -96,9 +94,8 @@ namespace MazeGenerator.Controllers
             MazeOpener.OpenWalls(grid, PacmanSize, PacmanSize, OpenChance);
 
             var random = new Random();
-            var taken = new HashSet<(int, int)> { (0, 0) };//стартовую клетку не занимаем
+            var taken = new HashSet<(int, int)> { (0, 0) };
 
-            //предметы: не рядом со стартом
             var items = new List<object>();
             while (items.Count < PacmanItems)
             {
@@ -108,7 +105,6 @@ namespace MazeGenerator.Controllers
                 items.Add(new { x, y });
             }
 
-            //враги далеко от старта
             var enemies = new List<object>();
             while (enemies.Count < EnemyImages.Length)
             {
@@ -128,7 +124,6 @@ namespace MazeGenerator.Controllers
             });
         }
 
-        // Сохранение результата
         [HttpPost]
         public IActionResult SaveResult([FromBody] SaveResultRequest request)
         {

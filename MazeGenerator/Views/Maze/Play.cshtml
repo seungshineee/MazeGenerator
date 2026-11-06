@@ -12,7 +12,6 @@
 }
 
 <style>
-    /* Цвета заданы прямо на блоке игры, поэтому страница не зависит от внешнего CSS */
     .game {
         --bg: #f5f5f7;
         --card: #ffffff;
@@ -24,16 +23,6 @@
         max-width: 700px;
         margin: 0 auto;
         color: var(--text);
-    }
-
-    /* тёмная тема, если в <html> стоит data-theme="dark" */
-    :root[data-theme="dark"] .game {
-        --bg: #17181c;
-        --card: #23252b;
-        --text: #ececf1;
-        --muted: #9a9aa5;
-        --accent: #7c93ff;
-        --border: #3a3c45;
     }
 
     .game-head {
@@ -114,35 +103,7 @@
 
     .game-actions { display: flex; gap: 12px; justify-content: center; }
 
-    .dpad {
-        display: grid;
-        grid-template-columns: repeat(3, 56px);
-        grid-template-areas: ". up ." "left . right" ". down .";
-        gap: 6px;
-        justify-content: center;
-        margin: 20px 0 0;
-    }
-    .dpad button {
-        height: 56px;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        background: var(--card);
-        color: var(--text);
-        font-size: 1.2rem;
-        cursor: pointer;
-    }
-    .dpad button:active { background: var(--accent); color: #fff; }
-    .dpad-up { grid-area: up; }
-    .dpad-left { grid-area: left; }
-    .dpad-right { grid-area: right; }
-    .dpad-down { grid-area: down; }
-
     .hint { text-align: center; color: var(--muted); font-size: 0.9rem; }
-
-    /* на компьютере кнопки-стрелки не нужны */
-    @@media (hover: hover) and (pointer: fine) {
-        .dpad { display: none; }
-    }
 </style>
 
 <div class="game" id="game">
@@ -174,13 +135,6 @@
     <div class="game-actions">
         <button id="restart" class="btn-outline" type="button">Новый лабиринт</button>
         <a class="btn-outline" asp-controller="Home" asp-action="Index">К выбору режима</a>
-    </div>
-
-    <div class="dpad">
-        <button type="button" data-dx="0" data-dy="-1" class="dpad-up">▲</button>
-        <button type="button" data-dx="-1" data-dy="0" class="dpad-left">◀</button>
-        <button type="button" data-dx="1" data-dy="0" class="dpad-right">▶</button>
-        <button type="button" data-dx="0" data-dy="1" class="dpad-down">▼</button>
     </div>
 
     <p class="hint">Управление: стрелки или WASD. Дойди до подсвеченной клетки в правом нижнем углу. Время пойдёт с первого шага.</p>
@@ -357,12 +311,6 @@
             e.preventDefault();
             move(dir[0], dir[1]);
         }
-    });
-
-    document.querySelectorAll('.dpad button').forEach(function (b) {
-        b.addEventListener('click', function () {
-            move(parseInt(b.dataset.dx), parseInt(b.dataset.dy));
-        });
     });
 
     document.getElementById('restart').addEventListener('click', load);

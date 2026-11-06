@@ -203,12 +203,11 @@
             const saveUrl = '@Url.Action("SaveResult", "Maze")';
             const imgSrc = '@Model.CharacterImage';
 
-            // настройки игры
             const TOTAL_LIVES = 3;
             const TOTAL_ITEMS = 5;
-            const ENEMY_STEP_MS = 450;   // чем меньше расстояние, тем быстрее враги
-            const CHASE = 0.7;           // вероятность, что враг идёт к игроку (иначе ходит рандомно)
-            const INVULN_MS = 1500;      // неуязвимость после потери жизни
+            const ENEMY_STEP_MS = 450;
+            const CHASE = 0.7;
+            const INVULN_MS = 1500;
 
             const gameEl = document.getElementById('game');
             const canvas = document.getElementById('maze');
@@ -272,7 +271,6 @@
                 pauseHint.hidden = true;
             }
 
-            // сколько секунд игра шла (без пауз)
             function totalSeconds() {
                 return (elapsedMs + (running ? performance.now() - runStart : 0)) / 1000;
             }
@@ -316,7 +314,6 @@
                 fit();
             }
 
-            // ---------- отрисовка ----------
 
             function drawSprite(img, x, y, fallbackColor) {
                 const m = Math.max(2, cell * 0.04);
@@ -386,7 +383,6 @@
                 requestAnimationFrame(loop);
             }
 
-            // ---------- движение игрока ----------
 
             function move(dx, dy) {
                 if (!maze || finished) return;
@@ -410,7 +406,6 @@
                 runStart = performance.now();
                 hidePause();
 
-                // после потери жизни неуязвимость отсчитывается с первого шага
                 if (invulnUntil === Infinity) invulnUntil = runStart + INVULN_MS;
 
                 timerId = setInterval(function () {
@@ -445,7 +440,6 @@
                     return;
                 }
 
-                // потеряна жизнь: пауза, игрок на старте, ждём первого шага
                 pauseRun();
                 px = 0;
                 py = 0;
@@ -453,7 +447,6 @@
                 showPause('Потеряна жизнь. Нажми стрелку, чтобы продолжить');
             }
 
-            // ---------- враги ----------
 
             function neighbors(x, y) {
                 const c = maze.cells[y * maze.width + x];
@@ -465,7 +458,6 @@
                 return r;
             }
 
-            // шаг врага по кратчайшему пути к игроку (поиск в ширину)
             function stepToward(e) {
                 const w = maze.width;
                 const start = e.y * w + e.x, goal = py * w + px;
@@ -507,7 +499,6 @@
                 checkHit();
             }
 
-            // ---------- конец игры ----------
 
             function lose() {
                 finished = true;
@@ -551,7 +542,6 @@
                 }
             }
 
-            // ---------- управление ----------
 
             document.addEventListener('keydown', function (e) {
                 const keys = {
