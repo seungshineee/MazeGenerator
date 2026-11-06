@@ -96,9 +96,9 @@ namespace MazeGenerator.Controllers
             MazeOpener.OpenWalls(grid, PacmanSize, PacmanSize, OpenChance);
 
             var random = new Random();
-            var taken = new HashSet<(int, int)> { (0, 0) };   // стартовую клетку не занимаем
+            var taken = new HashSet<(int, int)> { (0, 0) };//стартовую клетку не занимаем
 
-            // предметы: не рядом со стартом
+            //предметы: не рядом со стартом
             var items = new List<object>();
             while (items.Count < PacmanItems)
             {
@@ -108,7 +108,7 @@ namespace MazeGenerator.Controllers
                 items.Add(new { x, y });
             }
 
-            // враги: далеко от старта
+            //враги далеко от старта
             var enemies = new List<object>();
             while (enemies.Count < EnemyImages.Length)
             {
@@ -128,7 +128,7 @@ namespace MazeGenerator.Controllers
             });
         }
 
-        // Сохранение результата: POST /Maze/SaveResult
+        // Сохранение результата
         [HttpPost]
         public IActionResult SaveResult([FromBody] SaveResultRequest request)
         {
