@@ -1,15 +1,22 @@
+using MazeGenerator.Dtos;
 using MazeGenerator.Models;
 using MazeGenerator.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
+var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+
+ArgumentNullException.ThrowIfNullOrEmpty(defaultConnection, nameof(defaultConnection));
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(defaultConnection)
+    .ConfigureWarnings(x => x.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IMazeGenerator, BacktrackerGenerator>();
@@ -19,12 +26,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
+
+using (var scope = app.Services.CreateScope())
 {
-    //app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
 }
 
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -37,4 +45,4 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.Run();
+await app.RunAsync();

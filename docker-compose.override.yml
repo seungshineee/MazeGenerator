@@ -1,0 +1,27 @@
+services:
+  mazegenerator:
+    container_name: mazegenerator
+    image: seungshine/coolrep
+    depends_on:
+      - postgres_website
+    build:
+      context: MazeGenerator
+      dockerfile: Dockerfile
+    ports:
+      - "80:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+  postgres_website:
+    image: postgres:15
+    container_name: postgres_website
+    restart: always
+    environment:
+      POSTGRES_DB: MazeGeneratorDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_website_data:/var/lib/postgresql/data
+volumes:
+  postgres_website_data:

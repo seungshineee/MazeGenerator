@@ -4,12 +4,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace MazeGenerator.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class _initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -41,12 +39,6 @@ namespace MazeGenerator.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Users_Character_CharacterId",
-                        column: x => x.CharacterId,
-                        principalTable: "Character",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -72,44 +64,23 @@ namespace MazeGenerator.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.InsertData(
-                table: "Character",
-                columns: new[] { "Id", "ImagePath", "Name" },
-                values: new object[,]
-                {
-                    { 1, "/images/jean.png", "Жан" },
-                    { 2, "/images/neil.png", "Нил" },
-                    { 3, "/images/moran.png", "МоЖань" }
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Results_UserId",
                 table: "Results",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_CharacterId",
-                table: "Users",
-                column: "CharacterId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_Username",
-                table: "Users",
-                column: "Username",
-                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Character");
+
+            migrationBuilder.DropTable(
                 name: "Results");
 
             migrationBuilder.DropTable(
                 name: "Users");
-
-            migrationBuilder.DropTable(
-                name: "Character");
         }
     }
 }

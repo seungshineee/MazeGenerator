@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MazeGenerator.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261103070622_AddFizarolli")]
-    partial class AddFizarolli
+    [Migration("20261105090948__initial")]
+    partial class _initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,32 +44,6 @@ namespace MazeGenerator.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Character");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ImagePath = "/images/jean.png",
-                            Name = "Жан"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ImagePath = "/images/neil.png",
-                            Name = "Нил"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ImagePath = "/images/moran.png",
-                            Name = "МоЖань"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            ImagePath = "/images/fizarolli.png",
-                            Name = "Физаролли"
-                        });
                 });
 
             modelBuilder.Entity("MazeGenerator.Models.LevelResults", b =>
@@ -125,11 +99,6 @@ namespace MazeGenerator.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CharacterId");
-
-                    b.HasIndex("Username")
-                        .IsUnique();
-
                     b.ToTable("Users");
                 });
 
@@ -138,15 +107,6 @@ namespace MazeGenerator.Migrations
                     b.HasOne("MazeGenerator.Models.User", null)
                         .WithMany("Results")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("MazeGenerator.Models.User", b =>
-                {
-                    b.HasOne("MazeGenerator.Models.Character", null)
-                        .WithMany()
-                        .HasForeignKey("CharacterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
